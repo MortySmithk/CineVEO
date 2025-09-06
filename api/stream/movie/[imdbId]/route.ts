@@ -1,49 +1,48 @@
 import { NextResponse } from 'next/server';
-import { load } from 'cheerio'; // Você talvez precise instalar: npm install cheerio
 
-// Função que busca os streams da fonte externa (ex: Netcinex)
+// Esta é a nova função que busca os streams da API correta
 async function fetchStreamsFromProvider(imdbId: string) {
-    // Exemplo de como seu backend pode estar fazendo isso
-    // IMPORTANTE: Adapte esta lógica para ser igual à do seu localhost:3001
-    const response = await fetch(`https://netcinex.lat/filme/${imdbId}`, {
-        headers: {
-            'Referer': 'https://netcinex.lat/',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36'
+    try {
+        const response = await fetch('https://apiv2.metadrive.tv/api/v2/stream/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                type: 'movie',
+                id: imdbId,
+            }),
+        });
+
+        if (!response.ok) {
+            console.error('API provider returned an error:', response.status);
+            return null;
         }
-    });
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch from provider');
+        const data = await response.json();
+        
+        // Formata a resposta para o formato que o seu site espera
+        const streams = (data.stream || []).map((s: any) => ({
+            name: s.server,
+            description: `${s.server} - ${s.language}`,
+            url: s.url,
+            behaviorHints: {
+                proxyHeaders: {
+                    request: {
+                        Referer: data.player?.referer || '',
+                        'User-Agent': data.player?.user_agent || 'Mozilla/5.0',
+                    },
+                },
+            },
+        }));
+
+        return { streams };
+
+    } catch (error) {
+        console.error('Error fetching from provider API:', error);
+        return null;
     }
-
-    const html = await response.text();
-    const $ = load(html);
-
-    // Lógica para extrair os links do HTML (exemplo hipotético)
-    // Você precisa inspecionar o HTML da página e adaptar o seletor
-    const streams: any[] = [];
-    $('iframe').each((i, el) => {
-        const src = $(el).attr('src');
-        if (src) {
-             // Lógica para extrair e formatar os streams
-             // O resultado final deve ser parecido com o seu arquivo api.txt
-        }
-    });
-
-    // Se a lógica acima for muito complexa, você pode precisar de outra abordagem.
-    // Por enquanto, vamos retornar um erro amigável.
-    // O ideal é implementar a busca real aqui.
-
-    // Apenas para teste, vamos simular que não encontrou
-    if (streams.length === 0) {
-        // Se você tem outra API que retorna o JSON direto, chame ela aqui.
-        // Ex: const providerResponse = await fetch(`https://api-externa.com/movie/${imdbId}`);
-        // return await providerResponse.json();
-    }
-    
-    return { streams };
 }
-
 
 export async function GET(
     request: Request,
@@ -52,13 +51,12 @@ export async function GET(
     const { imdbId } = params;
 
     try {
-        // Removido a chamada para localhost e substituído pela lógica direta
+        // Agora chamamos a nova função que funciona!
         const data = await fetchStreamsFromProvider(imdbId);
 
-        // Se a busca não retornar nada, informe o usuário
         if (!data || !data.streams || data.streams.length === 0) {
             return new NextResponse(
-                JSON.stringify({ error: 'No streams found for this movie.' }),
+                JSON.stringify({ error: 'Nenhum stream encontrado para este filme.' }),
                 { status: 404, headers: { 'Content-Type': 'application/json' } }
             );
         }
@@ -66,9 +64,9 @@ export async function GET(
         return NextResponse.json(data);
 
     } catch (error: any) {
-        console.error(`Error fetching stream for movie ${imdbId}:`, error);
+        console.error(`Erro ao buscar stream para o filme ${imdbId}:`, error);
         return new NextResponse(
-            JSON.stringify({ error: 'Failed to fetch stream', details: error.message }),
+            JSON.stringify({ error: 'Falha ao buscar stream', details: error.message }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }

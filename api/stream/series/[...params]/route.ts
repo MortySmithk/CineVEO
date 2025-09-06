@@ -1,27 +1,50 @@
 import { NextResponse } from 'next/server';
-import { load } from 'cheerio'; // Você talvez precise instalar: npm install cheerio
 
-// Função que busca os streams de séries da fonte externa
+// Nova função para buscar streams de séries
 async function fetchSeriesStreamsFromProvider(imdbId: string, season: string, episode: string) {
-    // Lógica similar à de filmes, mas para séries
-    // Adapte a URL e a lógica de extração conforme necessário
-    const response = await fetch(`https://netcinex.lat/serie/${imdbId}/${season}/${episode}`, {
-         headers: {
-            'Referer': 'https://netcinex.lat/',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36'
+    try {
+        const response = await fetch('https://apiv2.metadrive.tv/api/v2/stream/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                type: 'series',
+                id: imdbId,
+                s: season,
+                e: episode,
+            }),
+        });
+
+        if (!response.ok) {
+            console.error('API provider returned an error:', response.status);
+            return null;
         }
-    });
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch series from provider');
+        const data = await response.json();
+
+        // Formata a resposta para o formato que o seu site espera
+        const streams = (data.stream || []).map((s: any) => ({
+            name: s.server,
+            description: `${s.server} - ${s.language}`,
+            url: s.url,
+            behaviorHints: {
+                proxyHeaders: {
+                    request: {
+                        Referer: data.player?.referer || '',
+                        'User-Agent': data.player?.user_agent || 'Mozilla/5.0',
+                    },
+                },
+            },
+        }));
+
+        return { streams };
+
+    } catch (error) {
+        console.error('Error fetching from provider API:', error);
+        return null;
     }
-    
-    // ... Lógica para extrair os dados da página HTML ...
-    const streams: any[] = [];
-    
-    return { streams };
 }
-
 
 export async function GET(
     request: Request,
@@ -31,7 +54,7 @@ export async function GET(
 
     if (!imdbId || !season || !episode) {
         return new NextResponse(
-            JSON.stringify({ error: 'Missing required parameters: imdbId, season, episode' }),
+            JSON.stringify({ error: 'Faltando parâmetros: imdbId, season, episode' }),
             { status: 400, headers: { 'Content-Type': 'application/json' } }
         );
     }
@@ -40,8 +63,8 @@ export async function GET(
         const data = await fetchSeriesStreamsFromProvider(imdbId, season, episode);
 
         if (!data || !data.streams || data.streams.length === 0) {
-             return new NextResponse(
-                JSON.stringify({ error: 'No streams found for this episode.' }),
+            return new NextResponse(
+                JSON.stringify({ error: 'Nenhum stream encontrado para este episódio.' }),
                 { status: 404, headers: { 'Content-Type': 'application/json' } }
             );
         }
@@ -49,9 +72,9 @@ export async function GET(
         return NextResponse.json(data);
 
     } catch (error: any) {
-        console.error(`Error fetching stream for series ${imdbId} S${season}E${episode}:`, error);
+        console.error(`Erro ao buscar stream para a série ${imdbId} S${season}E${episode}:`, error);
         return new NextResponse(
-            JSON.stringify({ error: 'Failed to fetch stream', details: error.message }),
+            JSON.stringify({ error: 'Falha ao buscar stream', details: error.message }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }
