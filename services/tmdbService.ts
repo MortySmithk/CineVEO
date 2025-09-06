@@ -1,57 +1,116 @@
-import { MediaItem, TmdbGenre } from '../types';
-import { TMDB_API_KEY, TMDB_BASE_URL, TMDB_IMG_URL, TMDB_IMG_ORIGINAL_URL } from '../constants';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, of } from 'rxjs';
+import { Genre, Media, TmdbItem, Season } from '../models/media.model';
 
-export const fetchFromTMDB = async <T,>(endpoint: string, params: string = ''): Promise<T | null> => {
-    const url = `${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}&language=pt-BR${params}`;
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            console.error(`TMDB API request failed: ${response.statusText}`);
-            return null;
-        }
-        return await response.json();
-    } catch (error) {
-        console.error(`Error fetching from TMDB endpoint ${endpoint}:`, error);
-        return null;
-    }
-};
+@Injectable({
+  providedIn: 'root'
+})
+export class TmdbService {
+  private http = inject(HttpClient);
+  
+  private readonly API_KEY = '678cf2db5c3ab4a315d8ec632c493c7d';
+  private readonly BASE_URL = 'https://api.themoviedb.org/3';
+  private readonly IMG_URL = 'https://image.tmdb.org/t/p/w500';
+  private readonly IMG_ORIGINAL_URL = 'https://image.tmdb.org/t/p/original';
 
-export const formatTMDBData = (item: any): MediaItem | null => {
-    if (!item || !item.id) return null;
-    const type = item.media_type || (item.first_air_date ? 'tv' : 'movie');
-    
-    // **CORREÇÃO AQUI**
-    // Pega o imdb_id de 'item.imdb_id' (para filmes) ou de 'item.external_ids.imdb_id' (para séries)
-    const imdbId = item.imdb_id || (item.external_ids ? item.external_ids.imdb_id : undefined);
+  private genresCache: Genre[] | null = null;
 
+  private formatMedia(item: TmdbItem): Media {
+    const tmdbType = item.media_type || (item.first_air_date ? 'tv' : 'movie');
+    const type = tmdbType === 'tv' ? 'series' : 'movie';
     return {
-        id: item.id,
-        imdb_id: imdbId, // Usa a variável corrigida
-        title: item.title || item.name || 'Título Desconhecido',
-        poster: item.poster_path ? `${TMDB_IMG_URL}${item.poster_path}` : 'https://placehold.co/342x513/111111/1A1A1A?text=N/A',
-        background: item.backdrop_path ? `${TMDB_IMG_ORIGINAL_URL}${item.backdrop_path}` : '',
-        synopsis: item.overview,
-        year: (item.release_date || item.first_air_date || '').substring(0, 4),
-        type: type === 'tv' ? 'series' : 'movie',
-        rating: item.vote_average ? parseFloat(item.vote_average.toFixed(1)) : undefined,
-        genres: item.genres,
-        seasons: item.seasons,
+      id: item.id,
+      title: (item as any).title || (item as any).name,
+      poster: item.poster_path ? `${this.IMG_URL}${item.poster_path}` : 'https://placehold.co/500x750/111111/1A1A1A?text=N/A',
+      background: item.backdrop_path ? `${this.IMG_ORIGINAL_URL}${item.backdrop_path}` : '',
+      synopsis: item.overview,
+      year: (item.release_date || item.first_air_date || '').substring(0, 4),
+      type: type,
+      rating: item.vote_average ? item.vote_average.toFixed(1) : 'N/A',
     };
-};
+  }
 
+  private fetch<T>(endpoint: string, params: string = ''): Observable<T> {
+    const url = `${this.BASE_URL}${endpoint}?api_key=${this.API_KEY}&language=pt-BR${params}`;
+    return this.http.get<T>(url);
+  }
 
-let genresList: TmdbGenre[] = [];
-export const getGenres = async (): Promise<TmdbGenre[]> => {
-    if (genresList.length > 0) {
-        return genresList;
+  getGenres(): Observable<Genre[]> {
+    if (this.genresCache) {
+      return of(this.genresCache);
     }
-    const movieGenresData = await fetchFromTMDB<{ genres: TmdbGenre[] }>('/genre/movie/list');
-    const tvGenresData = await fetchFromTMDB<{ genres: TmdbGenre[] }>('/genre/tv/list');
+    return this.fetch<{ genres: Genre[] }>('/genre/movie/list').pipe(
+      map((response: { genres: Genre[] }) => {
+        this.genresCache = response.genres;
+        return response.genres;
+      })
+    );
+  }
+
+  getTrending(type: 'movie' | 'tv', period: 'day' | 'week' = 'week'): Observable<Media[]> {
+    return this.fetch<{results: TmdbItem[]}>(`/trending/${type}/${period}`).pipe(
+      map((data: { results: TmdbItem[] }) => 
+        data.results
+          .filter(item => item.media_type !== 'person') // CORREÇÃO AQUI
+          .map(item => this.formatMedia(item))
+      )
+    );
+  }
+  
+  getPopular(type: 'movie' | 'tv'): Observable<Media[]> {
+    return this.fetch<{results: TmdbItem[]}>(`/${type}/popular`).pipe(
+      map((data: { results: TmdbItem[] }) => 
+        data.results
+          .filter(item => item.media_type !== 'person') // CORREÇÃO AQUI
+          .map(item => this.formatMedia(item))
+      )
+    );
+  }
+
+  getMediaDetails(type: 'movie' | 'series', id: number): Observable<Media> {
+    const tmdbType = type === 'series' ? 'tv' : 'movie';
+    return this.fetch<any>(`/${tmdbType}/${id}`).pipe(
+      map((data: any) => ({
+        ...this.formatMedia(data),
+        genres: data.genres,
+        seasons: data.seasons
+      }))
+    );
+  }
+  
+  getRecommendations(type: 'movie' | 'series', id: number): Observable<Media[]> {
+     const tmdbType = type === 'series' ? 'tv' : 'movie';
+    return this.fetch<{results: TmdbItem[]}>(`/${tmdbType}/${id}/recommendations`).pipe(
+      map((data: { results: TmdbItem[] }) => 
+        data.results
+          .slice(0, 12)
+          .filter(item => item.media_type !== 'person') // CORREÇÃO AQUI
+          .map(item => this.formatMedia(item))
+      )
+    );
+  }
+
+  getSeasonDetails(tvId: number, seasonNumber: number): Observable<Season> {
+    return this.fetch<Season>(`/tv/${tvId}/season/${seasonNumber}`);
+  }
+
+  discover(type: 'movie' | 'tv', genreId?: number, query?: string): Observable<Media[]> {
+    let params = '&sort_by=popularity.desc';
+    if (genreId) {
+      params += `&with_genres=${genreId}`;
+    }
+    const endpoint = query ? `/search/multi` : `/discover/${type}`;
+    if (query) {
+      params += `&query=${encodeURIComponent(query)}`;
+    }
     
-    const allGenres = new Map<number, string>();
-    if (movieGenresData) movieGenresData.genres.forEach(g => allGenres.set(g.id, g.name));
-    if (tvGenresData) tvGenresData.genres.forEach(g => allGenres.set(g.id, g.name));
-    
-    genresList = Array.from(allGenres.entries()).map(([id, name]) => ({ id, name }));
-    return genresList;
-};
+    return this.fetch<{results: TmdbItem[]}>(endpoint, params).pipe(
+      map((data: { results: TmdbItem[] }) => 
+        data.results
+          .filter(item => item.media_type !== 'person')
+          .map(item => this.formatMedia(item))
+      )
+    );
+  }
+}
