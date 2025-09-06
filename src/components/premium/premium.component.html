@@ -1,0 +1,59 @@
+
+<div class="p-6 md:p-12">
+  @if(isPremium() && userProfile(); as profile) {
+    <div class="max-w-2xl mx-auto text-center">
+      <h1 class="text-4xl md:text-5xl font-black text-white">Seu Plano Premium</h1>
+      <p class="text-lg text-text-dim mt-4">Obrigado por fazer parte do nosso clube de membros!</p>
+    </div>
+    <div class="max-w-2xl mx-auto bg-surface border-2 border-primary rounded-xl p-8 mt-12 shadow-lg shadow-primary/10">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <p class="text-text-dim text-sm">Seu plano atual</p>
+          <p class="text-2xl font-bold text-primary capitalize">{{ profile.premium?.plan }}</p>
+        </div>
+        <div class="text-left sm:text-right">
+          <p class="text-text-dim text-sm">Expira em</p>
+          <p class="text-2xl font-bold text-white">
+            {{ profile.premium?.plan === 'lifetime' ? 'Nunca' : (profile.premium?.expiresAt?.toDate() | date:'dd/MM/yyyy') }}
+          </p>
+        </div>
+      </div>
+      <div class="mt-6 pt-6 border-t border-border text-center">
+        <p class="text-text-dim">Você já tem acesso a todos os benefícios exclusivos. Aproveite!</p>
+      </div>
+    </div>
+  } @else {
+    <div class="max-w-5xl mx-auto text-center">
+        <h1 class="text-4xl md:text-5xl font-black text-white">Torne-se <span class="text-primary">Premium</span></h1>
+        <p class="text-lg text-text-dim mt-4 max-w-2xl mx-auto">Desbloqueie uma experiência sem anúncios, acesso a conteúdo exclusivo e muito mais.</p>
+    </div>
+    <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mt-12">
+      <div class="bg-surface rounded-lg shadow-lg p-8 border border-primary order-2 lg:order-1 transform hover:scale-105 transition-transform duration-300 shadow-primary/20">
+        <h2 class="text-2xl font-bold text-white text-center mb-4">Plano Único</h2>
+        <p class="text-4xl font-extrabold text-center text-primary mb-6">
+          R$ 9,99 <span class="text-lg font-medium text-text-dim">/mês</span>
+        </p>
+        <ul class="space-y-4 text-text-dim my-8 text-left">
+          <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span>Selo de Verificado Premium</span></li>
+          <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span>Acesso a um chat exclusivo</span></li>
+          <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span>Converse com desenvolvedores</span></li>
+          <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span>Sem anúncios invasivos</span></li>
+          <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i><span>Assista em 4 dispositivos</span></li>
+        </ul>
+        <button (click)="subscribe()" class="w-full mt-8 bg-primary text-text-dark font-bold py-3 rounded-full text-lg hover:bg-primary-hover transition-transform hover:scale-105">
+          Assinar Agora
+        </button>
+      </div>
+      <div class="order-1 lg:order-2 text-center lg:text-left">
+        <div class="bg-blue-900/50 text-blue-300 border border-blue-700 p-4 rounded-lg text-center mb-6">
+            <p><strong>ATENÇÃO:</strong> Após finalizar a compra, chame o suporte pelo botão do WhatsApp abaixo e mande o comprovante de pagamento para ativação manual.</p>
+        </div>
+        <div class="flex justify-center">
+            <a href="https://w.app/cineveo" target="_blank" rel="noopener noreferrer" class="inline-block transition-transform hover:scale-105">
+                <img src="https://i.ibb.co/whvC7vdL/Untitled-design.png" alt="Chamar no WhatsApp" class="w-64">
+            </a>
+        </div>
+      </div>
+    </div>
+  }
+</div>

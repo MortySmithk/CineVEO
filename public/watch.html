@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineVEO Player</title>
+
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+
+    <style>
+        /* Estilos para deixar o player em tela cheia e customizar as cores */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        /* Define a cor principal do player para combinar com sua marca */
+        :root {
+            --plyr-color-main: #f87171;
+        }
+    </style>
+</head>
+<body>
+
+    <video id="player" playsinline controls crossorigin></video>
+
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoElement = document.getElementById('player');
+            const urlParams = new URLSearchParams(window.location.search);
+            const videoSrc = urlParams.get('src');
+
+            // Se nenhum link de vídeo for fornecido, exibe uma mensagem.
+            if (!videoSrc) {
+                document.body.innerHTML = `
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-family: sans-serif;">
+                        <h3>Nenhuma fonte de vídeo foi especificada.</h3>
+                    </div>`;
+                return;
+            }
+
+            const decodedSrc = decodeURIComponent(videoSrc);
+
+            // Verifica se o link é HLS (.m3u8) e se o navegador tem suporte
+            if (Hls.isSupported() && decodedSrc.includes('.m3u8')) {
+                const hls = new Hls();
+                hls.loadSource(decodedSrc);
+                hls.attachMedia(videoElement);
+                window.hls = hls;
+            } else {
+                // Para links diretos como .mp4
+                videoElement.src = decodedSrc;
+            }
+
+            // Inicializa o Plyr com traduções para o português
+            const player = new Plyr(videoElement, {
+                i18n: {
+                    restart: 'Reiniciar',
+                    rewind: 'Retroceder {seektime}s',
+                    play: 'Reproduzir',
+                    pause: 'Pausar',
+                    fastForward: 'Avançar {seektime}s',
+                    seek: 'Buscar',
+                    seekLabel: '{currentTime} de {duration}',
+                    played: 'Reproduzido',
+                    buffered: 'Carregado',
+                    currentTime: 'Tempo atual',
+                    duration: 'Duração',
+                    volume: 'Volume',
+                    mute: 'Mudo',
+                    unmute: 'Ativar som',
+                    enableCaptions: 'Habilitar legendas',
+                    disableCaptions: 'Desabilitar legendas',
+                    download: 'Baixar',
+                    enterFullscreen: 'Tela cheia',
+                    exitFullscreen: 'Sair da tela cheia',
+                    frameTitle: 'Player para {title}',
+                    captions: 'Legendas',
+                    settings: 'Configurações',
+                    pip: 'Picture-in-Picture',
+                    menuBack: 'Voltar ao menu anterior',
+                    speed: 'Velocidade',
+                    normal: 'Normal',
+                    quality: 'Qualidade',
+                    loop: 'Repetir',
+                },
+                // Você pode adicionar mais opções aqui se precisar
+                // Ex: autoplay: true,
+            });
+
+            window.player = player;
+
+            // Tenta iniciar a reprodução automaticamente
+            player.on('ready', () => {
+                player.play().catch(() => {
+                    console.log("A reprodução automática foi bloqueada pelo navegador.");
+                });
+            });
+        });
+    </script>
+</body>
+</html>

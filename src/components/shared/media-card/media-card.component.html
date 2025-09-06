@@ -1,0 +1,15 @@
+@if(media(); as mediaItem) {
+<a [routerLink]="['/media', mediaItem.type, mediaItem.id]" class="media-card-link group block">
+  <div class="media-card relative aspect-[2/3] overflow-hidden rounded-lg">
+    <img [ngSrc]="mediaItem.poster" [alt]="mediaItem.title" fill class="media-card-poster object-cover transition-transform duration-300 ease-in-out group-hover:scale-110 group-hover:blur-sm">
+    <div class="media-card-overlay absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+      <div class="play-button w-20 h-20 bg-black/50 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center">
+        <i data-lucide="play" class="w-10 h-10 text-white ml-1"></i> </div>
+    </div>
+  </div>
+  <div class="mt-2">
+    <h3 class="font-semibold text-white truncate group-hover:text-primary transition-colors">{{ mediaItem.title }}</h3>
+    <p class="text-xs text-text-dim">{{ mediaItem.year }}</p>
+  </div>
+</a>
+}

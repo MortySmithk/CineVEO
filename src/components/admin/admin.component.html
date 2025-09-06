@@ -1,0 +1,47 @@
+
+<div class="p-6 md:p-12">
+  <div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Painel Administrativo</h1>
+    
+    <div class="bg-surface rounded-lg p-6 md:p-8 shadow-lg border border-border">
+      <h2 class="text-xl font-bold text-white mb-6">Conceder Premium a um Usuário</h2>
+      
+      <form [formGroup]="form" (ngSubmit)="verifyUid()" class="space-y-4">
+        <div>
+          <label for="admin-uid-input" class="block mb-2 text-sm font-medium text-text-dim">UID do Usuário</label>
+          <div class="flex gap-4">
+            <input type="text" id="admin-uid-input" formControlName="uid" class="bg-surface-light border border-border text-white text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-3" placeholder="Cole o UID aqui">
+            <button type="submit" [disabled]="isVerifying()" class="text-text-dark bg-primary hover:bg-primary-hover font-bold rounded-lg text-sm px-6 py-3 text-center whitespace-nowrap disabled:bg-gray-600">
+              @if (isVerifying()) {
+                <span>Verificando...</span>
+              } @else {
+                <span>Verificar</span>
+              }
+            </button>
+          </div>
+        </div>
+      </form>
+      
+      @if (verifiedUser(); as user) {
+        <div class="mt-8 pt-6 border-t border-border">
+          <h3 class="font-bold text-lg text-white mb-2">Usuário Encontrado:</h3>
+          <div class="bg-surface-light p-4 rounded-lg border border-border">
+            <p class="text-white"><strong>Nome:</strong> {{ user.displayName }}</p>
+            <p class="text-text-dim"><strong>Email:</strong> {{ user.email }}</p>
+            <div class="mt-4">
+              <label for="admin-expiry-days" class="text-sm font-medium text-text-dim">Dias de Duração (0 para vitalício):</label>
+              <input type="number" id="admin-expiry-days" [formControl]="form.controls.expiryDays" class="bg-surface border border-border text-white text-sm rounded-lg block w-full p-2 mt-1">
+            </div>
+          </div>
+          <div class="mt-6">
+            <h3 class="font-bold text-lg text-white mb-4">Selecione o Plano:</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button (click)="grantPremium('premium')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition">Plano Premium (Mensal)</button>
+                <button (click)="grantPremium('lifetime')" class="bg-yellow-500 hover:bg-yellow-600 text-text-dark font-bold py-3 px-4 rounded-lg transition">Plano Vitalício</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

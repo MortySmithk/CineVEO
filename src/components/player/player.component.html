@@ -1,0 +1,45 @@
+
+<div #playerContainer class="player-container relative w-full h-screen bg-black overflow-hidden" 
+     (mousemove)="showControls()" 
+     (mouseleave)="isControlsVisible.set(false)"
+     [class.hide-cursor]="!isControlsVisible() && isPlaying()">
+  @if(videoSrc(); as src) {
+    <video #videoPlayer class="w-full h-full" 
+           [src]="src"
+           (play)="onPlayPause()" 
+           (pause)="onPlayPause()"
+           (timeupdate)="onTimeUpdate()"
+           (loadedmetadata)="onLoadedMetadata()"
+           (volumechange)="onVolumeChangeUpdate()">
+    </video>
+  } @else {
+    <div class="w-full h-full flex items-center justify-center text-white">Nenhuma fonte de vídeo especificada.</div>
+  }
+  
+  <div class="controls-container absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-20"
+       [class.opacity-0]="!isControlsVisible()" 
+       [class.opacity-100]="isControlsVisible()">
+    
+    <input #progressBar type="range" min="0" max="100" value="0" (input)="onSeek()" class="w-full h-1.5 rounded-lg appearance-none cursor-pointer">
+
+    <div class="flex items-center justify-between mt-2 text-white">
+      <div class="flex items-center space-x-4">
+        <button (click)="togglePlay()" class="text-2xl w-8 text-center">
+          <i [attr.data-lucide]="isPlaying() ? 'pause' : 'play'"></i>
+        </button>
+        <div class="flex items-center space-x-2">
+          <button (click)="toggleMute()" class="text-xl w-8 text-center">
+            <i [attr.data-lucide]="isMuted() || volume() === 0 ? 'volume-x' : (volume() > 0.5 ? 'volume-2' : 'volume-1')"></i>
+          </button>
+          <input type="range" min="0" max="1" step="0.01" [value]="volume()" (input)="onVolumeChange($event)" class="w-24 h-1.5 accent-primary">
+        </div>
+        <div class="text-sm font-mono">
+          <span>{{ formatTime(currentTime()) }}</span> / <span>{{ formatTime(duration()) }}</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button (click)="toggleFullscreen()" class="text-xl w-8 text-center"><i data-lucide="maximize"></i></button>
+      </div>
+    </div>
+  </div>
+</div>

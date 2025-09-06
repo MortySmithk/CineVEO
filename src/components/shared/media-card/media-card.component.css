@@ -1,0 +1,5 @@
+
+.media-card-link:hover .play-button {
+  background-color: var(--color-primary);
+  color: var(--color-text-dark);
+}

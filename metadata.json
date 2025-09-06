@@ -1,0 +1,5 @@
+{
+  "name": "CineVEO",
+  "description": "A modern, responsive web application for browsing and watching a vast catalog of movies and TV series. Features include user authentication, watch history, premium subscriptions, and a tailored experience for desktop, mobile, and TV devices.",
+  "requestFramePermissions": []
+}

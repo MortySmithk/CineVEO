@@ -1,0 +1,61 @@
+
+@if (heroItems().length > 0) {
+<section class="relative h-[60vh] md:h-[75vh] w-full text-white">
+  @if (heroItems()[0]; as heroItem) {
+    <div class="absolute inset-0">
+      <img [ngSrc]="heroItem.background" fill priority class="object-cover w-full h-full" alt="Backdrop for {{ heroItem.title }}">
+      <div class="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent"></div>
+    </div>
+    <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-12">
+      <div class="max-w-2xl">
+        <h1 class="text-4xl md:text-6xl font-black mb-4 leading-tight drop-shadow-lg">{{ heroItem.title }}</h1>
+        <p class="text-text-dim mb-8 line-clamp-3 md:text-lg drop-shadow">{{ heroItem.synopsis }}</p>
+        <div class="flex items-center gap-4">
+          <a [routerLink]="['/media', heroItem.type, heroItem.id]" class="bg-primary text-text-dark font-bold py-3 px-8 rounded-full flex items-center gap-2 text-base hover:bg-primary-hover transition-transform hover:scale-105">
+            <i data-lucide="play" class="w-5 h-5"></i>
+            <span>Assistir Agora</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  }
+</section>
+}
+
+<div class="py-8 md:py-12 space-y-12">
+    @if(continueWatching().length > 0) {
+      <section>
+        <h2 class="text-2xl font-bold px-6 md:px-12 mb-4">Continuar Assistindo</h2>
+        <div class="flex overflow-x-auto gap-4 md:gap-6 px-6 md:px-12 pb-4 -mb-4">
+          @for (item of continueWatching(); track item.id) {
+            <div class="w-40 md:w-48 flex-shrink-0">
+              <app-media-card [media]="item"></app-media-card>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+  <section>
+    <h2 class="text-2xl font-bold px-6 md:px-12 mb-4">Filmes Populares</h2>
+    <div class="flex overflow-x-auto gap-4 md:gap-6 px-6 md:px-12 pb-4 -mb-4">
+      @for (item of popularMovies(); track item.id) {
+        <div class="w-40 md:w-48 flex-shrink-0">
+          <app-media-card [media]="item"></app-media-card>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-bold px-6 md:px-12 mb-4">Séries Populares</h2>
+    <div class="flex overflow-x-auto gap-4 md:gap-6 px-6 md:px-12 pb-4 -mb-4">
+      @for (item of popularSeries(); track item.id) {
+        <div class="w-40 md:w-48 flex-shrink-0">
+          <app-media-card [media]="item"></app-media-card>
+        </div>
+      }
+    </div>
+  </section>
+</div>

@@ -1,0 +1,111 @@
+
+<div class="flex h-screen bg-background text-text-light" [ngClass]="'device-' + deviceType()">
+  <!-- SIDEBAR -->
+  <aside class="w-64 bg-surface flex-shrink-0 flex-col border-r border-border hidden md:flex">
+    <div class="h-20 flex items-center px-6">
+      <a routerLink="/" class="flex items-center gap-2">
+        <img ngSrc="https://i.ibb.co/tPxYjZZ0/Gemini-Generated-Image-ejjiocejjiocejji-1.png" alt="CineVEO Logo" width="140" height="32" priority />
+      </a>
+    </div>
+    <nav class="flex-grow px-4 space-y-2">
+      <a routerLink="/" routerLinkActive="bg-primary text-text-dark" [routerLinkActiveOptions]="{exact: true}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-dim hover:bg-surface-light hover:text-text-light transition-colors">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span>Início</span>
+      </a>
+      <a routerLink="/pesquisar" routerLinkActive="bg-primary text-text-dark" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-dim hover:bg-surface-light hover:text-text-light transition-colors">
+        <i data-lucide="search" class="w-5 h-5"></i>
+        <span>Pesquisar</span>
+      </a>
+      <a routerLink="/filmes" routerLinkActive="bg-primary text-text-dark" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-dim hover:bg-surface-light hover:text-text-light transition-colors">
+        <i data-lucide="film" class="w-5 h-5"></i>
+        <span>Filmes</span>
+      </a>
+      <a routerLink="/series" routerLinkActive="bg-primary text-text-dark" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-dim hover:bg-surface-light hover:text-text-light transition-colors">
+        <i data-lucide="tv" class="w-5 h-5"></i>
+        <span>Séries</span>
+      </a>
+       <a routerLink="/animacoes" routerLinkActive="bg-primary text-text-dark" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-dim hover:bg-surface-light hover:text-text-light transition-colors">
+        <i data-lucide="smile" class="w-5 h-5"></i>
+        <span>Animações</span>
+      </a>
+      <a routerLink="/novelas" routerLinkActive="bg-primary text-text-dark" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-dim hover:bg-surface-light hover:text-text-light transition-colors">
+        <i data-lucide="drama" class="w-5 h-5"></i>
+        <span>Novelas</span>
+      </a>
+      <div class="pt-4 mt-4 border-t border-border">
+          <a routerLink="/premium" routerLinkActive="bg-primary text-text-dark" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-yellow-400 hover:bg-surface-light hover:text-yellow-300 transition-colors">
+            <i data-lucide="crown" class="w-5 h-5"></i>
+            <span>Premium</span>
+          </a>
+          @if (isAdmin()) {
+            <a routerLink="/admin" routerLinkActive="bg-primary text-text-dark" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-dim hover:bg-surface-light hover:text-text-light transition-colors">
+              <i data-lucide="shield" class="w-5 h-5"></i>
+              <span>Admin</span>
+            </a>
+          }
+      </div>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- HEADER -->
+    <header class="h-20 flex-shrink-0 bg-background/80 backdrop-blur-md border-b border-border flex items-center px-6 md:px-8 justify-between z-30">
+        <div class="flex-1 max-w-xl">
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-dim"></i>
+            <input type="text" placeholder="Buscar filmes ou séries..."
+              class="w-full bg-surface border border-border rounded-full py-2.5 pl-12 pr-4 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+              [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" (keyup.enter)="onSearch()">
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          @if (currentUser(); as user) {
+            <div class="relative group">
+                <a routerLink="/perfil" class="flex items-center gap-3 cursor-pointer">
+                    <img [src]="user.photoURL || 'https://ui-avatars.com/api/?name=' + user.displayName + '&background=1f2937&color=f3f4f6&size=128'" 
+                         alt="User Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-surface-light group-hover:border-primary transition-colors">
+                    <span class="hidden lg:inline font-semibold">{{ user.displayName }}</span>
+                </a>
+            </div>
+             <button (click)="logout()" class="p-2 rounded-full hover:bg-surface-light text-text-dim hover:text-text-light transition-colors">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+              </button>
+          } @else {
+            <button (click)="isAuthModalOpen.set(true)" class="bg-primary text-text-dark font-bold py-2 px-5 rounded-full hover:bg-primary-hover transition-colors text-sm">
+              Entrar
+            </button>
+          }
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+  
+  <!-- NOTIFICATIONS -->
+  <div class="fixed top-20 right-6 z-50 space-y-3 w-full max-w-sm">
+    @for (notification of notifications(); track notification.id) {
+      <div [ngClass]="{
+        'bg-green-600': notification.type === 'success',
+        'bg-red-600': notification.type === 'error',
+        'bg-blue-600': notification.type === 'info'
+      }" class="notification-item flex items-start justify-between text-white p-4 rounded-lg shadow-lg">
+        <p class="text-sm font-medium">{{ notification.message }}</p>
+        <button (click)="closeNotification(notification.id)">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- AUTH MODAL -->
+  @if(isAuthModalOpen()) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center" (click)="isAuthModalOpen.set(false)">
+      <div class="w-full max-w-md bg-surface rounded-2xl shadow-lg border border-border" (click)="$event.stopPropagation()">
+          <app-auth-modal (closeModal)="isAuthModalOpen.set(false)"></app-auth-modal>
+      </div>
+    </div>
+  }
+</div>

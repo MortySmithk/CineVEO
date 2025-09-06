@@ -1,0 +1,63 @@
+
+<div class="p-6 md:p-12">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-2">Encontre o que assistir</h1>
+    <p class="text-text-dim text-center mb-6">Busque por filmes, séries e muito mais.</p>
+    
+    <form (submit)="submitSearch(searchQuery())" class="relative mb-8">
+      <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-text-dim"></i>
+      <input 
+        type="text" 
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onQueryChange($event)"
+        name="searchQuery"
+        placeholder="Ex: O Poderoso Chefão, The Office..." 
+        class="w-full p-4 pl-16 pr-6 text-lg bg-surface border-2 border-border rounded-full focus:ring-primary focus:border-primary transition-colors outline-none">
+    </form>
+  </div>
+
+  <div>
+    @if(searchQuery().length < 2) {
+      @if(searchHistory().length > 0) {
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">Buscas Recentes</h2>
+            <div class="flex flex-wrap gap-3">
+                @for(item of searchHistory(); track item) {
+                    <div class="flex items-center bg-surface rounded-full">
+                        <button (click)="searchFromHistory(item)" class="px-4 py-2 text-text-light hover:text-primary transition-colors text-sm">
+                            {{ item }}
+                        </button>
+                        <button (click)="removeFromHistory(item)" class="pr-3 pl-1 text-text-dim hover:text-white">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+      }
+      <h2 class="text-2xl font-bold mb-6">Populares no momento</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        @for (item of popularItems(); track item.id) {
+          <app-media-card [media]="item"></app-media-card>
+        }
+      </div>
+    } @else {
+      @if (isLoading()) {
+        <div class="flex justify-center items-center h-64">
+          <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      } @else {
+        <h2 class="text-2xl font-bold mb-6">Resultados para "{{ searchQuery() }}"</h2>
+        @if (searchResults().length > 0) {
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            @for (item of searchResults(); track item.id) {
+              <app-media-card [media]="item"></app-media-card>
+            }
+          </div>
+        } @else {
+          <p class="text-text-dim text-center py-16">Nenhum resultado encontrado.</p>
+        }
+      }
+    }
+  </div>
+</div>
