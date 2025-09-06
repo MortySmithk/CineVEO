@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/embed/:path*",
+      "destination": "/api/embed?path=:path*"
+    }
+  ]
+}
