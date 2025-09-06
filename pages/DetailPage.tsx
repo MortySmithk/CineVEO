@@ -55,8 +55,12 @@ const DetailPage: React.FC = () => {
 
             try {
                 const tmdbType = type === 'series' ? 'tv' : 'movie';
+                
+                // **CORREÇÃO AQUI**: Adicionado '&append_to_response=external_ids' para buscar o IMDb ID
+                const appendToResponse = type === 'series' ? '&append_to_response=external_ids' : '';
+
                 const [data, recommendationsData] = await Promise.all([
-                    fetchFromTMDB<any>(`/${tmdbType}/${id}`),
+                    fetchFromTMDB<any>(`/${tmdbType}/${id}`, appendToResponse),
                     fetchFromTMDB<{ results: any[] }>(`/${tmdbType}/${id}/recommendations`)
                 ]);
                 
@@ -103,11 +107,11 @@ const DetailPage: React.FC = () => {
                     ? `/api/stream/movie/${media.imdb_id}`
                     : `/api/stream/series/${media.imdb_id}/${currentSeason}/${currentEpisode}`;
                 
-                console.log(`Buscando streams do Servidor 2 em: ${endpoint}`); // Log de depuração
+                console.log(`Buscando streams do Servidor 2 em: ${endpoint}`);
                 const streamResponse = await fetch(endpoint);
                 const streamData = await streamResponse.json();
 
-                console.log("Resposta da API de stream:", streamData); // Log de depuração
+                console.log("Resposta da API de stream:", streamData);
 
                 if (streamResponse.ok && streamData.streams && streamData.streams.length > 0) {
                     setServer2Streams(streamData.streams);

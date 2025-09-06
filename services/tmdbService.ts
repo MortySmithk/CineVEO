@@ -20,9 +20,13 @@ export const formatTMDBData = (item: any): MediaItem | null => {
     if (!item || !item.id) return null;
     const type = item.media_type || (item.first_air_date ? 'tv' : 'movie');
     
+    // **CORREÇÃO AQUI**
+    // Pega o imdb_id de 'item.imdb_id' (para filmes) ou de 'item.external_ids.imdb_id' (para séries)
+    const imdbId = item.imdb_id || (item.external_ids ? item.external_ids.imdb_id : undefined);
+
     return {
         id: item.id,
-        imdb_id: item.imdb_id, // Linha adicionada para capturar o IMDb ID
+        imdb_id: imdbId, // Usa a variável corrigida
         title: item.title || item.name || 'Título Desconhecido',
         poster: item.poster_path ? `${TMDB_IMG_URL}${item.poster_path}` : 'https://placehold.co/342x513/111111/1A1A1A?text=N/A',
         background: item.backdrop_path ? `${TMDB_IMG_ORIGINAL_URL}${item.backdrop_path}` : '',
