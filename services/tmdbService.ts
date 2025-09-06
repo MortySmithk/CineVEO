@@ -1,4 +1,3 @@
-
 import { MediaItem, TmdbGenre } from '../types';
 import { TMDB_API_KEY, TMDB_BASE_URL, TMDB_IMG_URL, TMDB_IMG_ORIGINAL_URL } from '../constants';
 
@@ -23,6 +22,7 @@ export const formatTMDBData = (item: any): MediaItem | null => {
     
     return {
         id: item.id,
+        imdb_id: item.imdb_id, // Linha adicionada para capturar o IMDb ID
         title: item.title || item.name || 'Título Desconhecido',
         poster: item.poster_path ? `${TMDB_IMG_URL}${item.poster_path}` : 'https://placehold.co/342x513/111111/1A1A1A?text=N/A',
         background: item.backdrop_path ? `${TMDB_IMG_ORIGINAL_URL}${item.backdrop_path}` : '',

@@ -1,6 +1,6 @@
-
 export interface MediaItem {
-    id: number;
+    id: number; // Este é o TMDB ID
+    imdb_id?: string; // Adicione esta linha para o IMDb ID
     title: string;
     poster: string;
     background?: string;

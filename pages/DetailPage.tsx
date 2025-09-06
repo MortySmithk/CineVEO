@@ -91,10 +91,17 @@ const DetailPage: React.FC = () => {
         }
 
         const fetchStreams = async () => {
+            if (!media.imdb_id) {
+                toast.error("IMDb ID não encontrado para este item.");
+                setServer2Streams([]);
+                setSelectedStream(null);
+                return;
+            }
+
             try {
                 const endpoint = type === 'movie' 
-                    ? `/api/stream/movie/${id}`
-                    : `/api/stream/series/${id}/${currentSeason}/${currentEpisode}`;
+                    ? `/api/stream/movie/${media.imdb_id}`
+                    : `/api/stream/series/${media.imdb_id}/${currentSeason}/${currentEpisode}`;
                 
                 console.log(`Buscando streams do Servidor 2 em: ${endpoint}`); // Log de depuração
                 const streamResponse = await fetch(endpoint);
